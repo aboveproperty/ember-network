@@ -1,6 +1,18 @@
 /* jshint node: true */
 'use strict';
 
+// For ember-cli < 2.7 findHost doesnt exist so we backport from that version
+// for earlier version of ember-cli.
+//https://github.com/ember-cli/ember-cli/blame/16e4492c9ebf3348eb0f31df17215810674dbdf6/lib/models/addon.js#L533
+function findHostShim() {
+  var current = this;
+  var app;
+  do {
+    app = current.app || app;
+  } while (current.parent.parent && (current = current.parent));
+  return app;
+}
+
 /*
  * The `index.js` file is the main entry point for all Ember CLI addons.  The
  * object we export from this file is turned into an Addon class
@@ -34,6 +46,9 @@ module.exports = {
    * from our `vendor` tree into the final built app.
    */
   included: function(app) {
+    var findHost = this._findHost || findHostShim;
+    var app = findHost.call(this);
+
     app.import('vendor/fetch.js');
   },
 
